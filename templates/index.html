@@ -1,0 +1,84 @@
+<div class="container">
+    <h1>Math Learning Game</h1>
+    
+    <div class="number-line">
+        |{% for i in range(21) %}----{{ i }}----{% if i < 20 %}|{% endif %}{% endfor %}|
+    </div>
+
+    <div class="game-area">
+        <div class="problem">
+            {% for num in numbers %}
+                {% if not loop.first %}
+                    <span class="operation">{{ operation }}</span>
+                {% endif %}
+                <span class="number">{{ num }}</span>
+            {% endfor %}
+            <span class="equals">=</span>
+            <input type="number" step="any" id="userAnswer" placeholder="Your answer">
+            <button class="check-btn" onclick="checkAnswer()">Check Answer</button>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <div class="controls">
+            <div class="operations">
+                <button class="op-btn {% if operation == '+' %}active{% endif %}" onclick="updateOperation('+')">+</button>
+                <button class="op-btn {% if operation == '-' %}active{% endif %}" onclick="updateOperation('-')">-</button>
+                <button class="op-btn {% if operation == '×' %}active{% endif %}" onclick="updateOperation('×')">×</button>
+                <button class="op-btn {% if operation == '÷' %}active{% endif %}" onclick="updateOperation('÷')">÷</button>
+            </div>
+
+            <div class="difficulty">
+                <button class="diff-btn {% if difficulty == 'easy' %}active{% endif %}" onclick="updateDifficulty('easy')">Easy (2 numbers)</button>
+                <button class="diff-btn {% if difficulty == 'hard' %}active{% endif %}" onclick="updateDifficulty('hard')">Hard (3 numbers)</button>
+            </div>
+
+            <button class="new-btn" onclick="generateNewProblem()">New Problem</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function checkAnswer() {
+        const userAnswer = document.getElementById('userAnswer').value;
+        if (!userAnswer) {
+            showFeedback('Please enter an answer!', 'warning');
+            return;
+        }
+
+        fetch('/check_answer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ answer: userAnswer })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.correct) {
+                showFeedback('Correct! 🎉', 'correct');
+                setTimeout(generateNewProblem, 1500);
+            } else {
+                showFeedback(`Try again! The correct answer was ${data.correct_answer}`, 'incorrect');
+            }
+        });
+    }
+
+    function showFeedback(message, type) {
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = message;
+        feedback.className = `feedback ${type}`;
+        feedback.style.display = 'block';
+    }
+
+    function generateNewProblem() {
+        window.location.reload();
+    }
+
+    // Add enter key support for checking answer
+    document.getElementById('userAnswer').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkAnswer();
+        }
+    });
+</script> 

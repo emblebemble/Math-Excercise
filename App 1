@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+function App() {
+  const [numbers, setNumbers] = useState([]);
+  const [operation, setOperation] = useState('+');
+  const [userAnswer, setUserAnswer] = useState('');
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [difficulty, setDifficulty] = useState('easy'); // easy: 2 numbers, hard: 3 numbers
+
+  const generateNumbers = () => {
+    const count = difficulty === 'easy' ? 2 : 3;
+    const newNumbers = Array(count).fill(0).map(() => Math.floor(Math.random() * 10) + 1);
+    setNumbers(newNumbers);
+    setUserAnswer('');
+    setIsCorrect(null);
+  };
+
+  const calculateCorrectAnswer = () => {
+    return numbers.reduce((acc, curr) => {
+      switch (operation) {
+        case '+': return acc + curr;
+        case '-': return acc - curr;
+        case '×': return acc * curr;
+        case '÷': return acc / curr;
+        default: return acc;
+      }
+    });
+  };
+
+  const checkAnswer = () => {
+    const correct = calculateCorrectAnswer();
+    setIsCorrect(Math.abs(parseFloat(userAnswer) - correct) < 0.01);
+  };
+
+  useEffect(() => {
+    generateNumbers();
+  }, [difficulty]);
+
+  return (
+    <div className="App">
+      <h1>Math Learning Game</h1>
+      
+      <div className="difficulty-selector">
+        <button onClick={() => setDifficulty('easy')}>Easy (2 numbers)</button>
+        <button onClick={() => setDifficulty('hard')}>Hard (3 numbers)</button>
+      </div>
+
+      <div className="number-line">
+        {[...Array(20)].map((_, i) => (
+          <div key={i} className="number-mark">
+            <div className="tick"></div>
+            <div className="number">{i}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="problem">
+        <div className="numbers">
+          {numbers.map((num, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <span className="operation">{operation}</span>}
+              <span className="number">{num}</span>
+            </React.Fragment>
+          ))}
+          <span className="equals">=</span>
+        </div>
+
+        <input
+          type="number"
+          value={userAnswer}
+          onChange={(e) => setUserAnswer(e.target.value)}
+          placeholder="Your answer"
+        />
+        <button onClick={checkAnswer}>Check Answer</button>
+      </div>
+
+      {isCorrect !== null && (
+        <div className={`feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
+          {isCorrect ? 'Correct! 🎉' : 'Try again! 💪'}
+        </div>
+      )}
+
+      <div className="operations">
+        <button onClick={() => setOperation('+')}>+</button>
+        <button onClick={() => setOperation('-')}>-</button>
+        <button onClick={() => setOperation('×')}>×</button>
+        <button onClick={() => setOperation('÷')}>÷</button>
+      </div>
+
+      <button className="new-problem" onClick={generateNumbers}>
+        New Problem
+      </button>
+    </div>
+  );
+}
+
+export default App;
